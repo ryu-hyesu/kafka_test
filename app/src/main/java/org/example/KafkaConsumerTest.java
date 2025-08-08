@@ -34,7 +34,7 @@ public class KafkaConsumerTest {
         long firstReceiveTime = 0;
         long lastReceiveTime = 0;
 
-        final int totalMessages = 131072 * 16;  // Producer와 동일한 값
+        final int totalMessages = 131072 * 1;  // Producer와 동일한 값
 
         while (true) {
             ConsumerRecords<String, String> records = consumer.poll(java.time.Duration.ofMillis(100));

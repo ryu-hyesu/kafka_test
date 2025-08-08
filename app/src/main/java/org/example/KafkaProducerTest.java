@@ -11,7 +11,7 @@ public class KafkaProducerTest {
     private static final String BOOTSTRAP_SERVERS = "localhost:9092";
     private static final String TOPIC = "test-topic";
     private static final int TOTAL_MESSAGES = 131072;  // 각 스레드당 전송 수
-    private static final int NUM_THREADS = 16;          // 스레드 개수
+    private static final int NUM_THREADS = 1;          // 스레드 개수
 
     public static void main(String[] args) throws InterruptedException {
         CountDownLatch latch = new CountDownLatch(NUM_THREADS * TOTAL_MESSAGES);
