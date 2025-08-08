@@ -28,8 +28,13 @@ public class KafkaConsumerTest {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
         System.out.println("🎯 Consumer 시작: " + sdf.format(new Date()));
 
-        long totalLatency = 0;
+                long totalLatency = 0;
         int messageCount = 0;
+
+        long firstReceiveTime = 0;
+        long lastReceiveTime = 0;
+
+        final int totalMessages = 131072 * 16;  // Producer와 동일한 값
 
         while (true) {
             ConsumerRecords<String, String> records = consumer.poll(java.time.Duration.ofMillis(100));
@@ -38,14 +43,12 @@ public class KafkaConsumerTest {
                 long receiveTime = System.currentTimeMillis();
                 String value = record.value();
 
-                // ✅ 메시지에 "sendTime=" 포함되어 있어야 함
                 if (!value.contains("sendTime=")) {
                     System.out.println("⚠️ Received malformed message: " + value);
                     continue;
                 }
 
                 try {
-                    // ✅ sendTime=밀리초 포맷 파싱
                     String sendTimeString = value.split("sendTime=")[1].split(" ")[0].trim();
                     long sendTime = Long.parseLong(sendTimeString);
 
@@ -53,17 +56,33 @@ public class KafkaConsumerTest {
                     totalLatency += latency;
                     messageCount++;
 
-                    if (messageCount % 1000 == 0) {
+                    // ✅ 최초 수신 시각 기록
+                    if (firstReceiveTime == 0) {
+                        firstReceiveTime = receiveTime;
+                    }
+                    // ✅ 마지막 수신 시각 갱신
+                    lastReceiveTime = receiveTime;
+
+                    if (messageCount % 10000 == 0) {
                         double avgLatency = (double) totalLatency / messageCount;
                         System.out.printf("📊 Avg Latency: %.2f ms | Processed: %d\n", avgLatency, messageCount);
                         totalLatency = 0;
-                        messageCount = 0;
+                        // messageCount = 0;
                     }
+
+                    // ✅ 모든 메시지 수신 완료 시 총 시간 출력
+                    if (messageCount == totalMessages) {
+                        long totalReceiveDuration = lastReceiveTime - firstReceiveTime;
+                        System.out.printf("🎉 총 %d개 메시지 수신 완료 (걸린 시간: %d ms)\n", totalMessages, totalReceiveDuration);
+                        System.exit(0);  // 수신 완료 후 종료
+                    }
+
                 } catch (Exception e) {
                     System.out.println("❌ Error parsing message: " + value);
                     e.printStackTrace();
                 }
             }
         }
+
     }
 }
